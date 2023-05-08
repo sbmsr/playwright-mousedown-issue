@@ -1,4 +1,3 @@
-import fetch from "node-fetch";
 import { chromium } from "playwright";
 import { setTimeout } from "timers/promises";
 import { test } from "uvu";
@@ -7,37 +6,6 @@ import * as assert from "uvu/assert";
 let browser;
 let context;
 let page;
-
-const initialState = {
-  Backlog: [
-    {
-      id: "task5",
-      name: "Deploy application",
-    },
-  ],
-  "In Progress": [
-    {
-      id: "task4",
-      name: "Test application",
-    },
-  ],
-  "In Review": [
-    {
-      id: "task6",
-      name: "Build Application",
-    },
-  ],
-  Done: [
-    {
-      id: "task2",
-      name: "Design mockups",
-    },
-    {
-      id: "task1",
-      name: "Write specs",
-    },
-  ],
-};
 
 test.before(async () => {
   browser = await chromium.launch({
@@ -51,13 +19,6 @@ test.before(async () => {
 
 test.before.each(async () => {
   page = await context.newPage();
-  await fetch("http://localhost:3001/tasks", {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(initialState),
-  });
   await showMousePosition(page);
 });
 
@@ -77,17 +38,14 @@ test("Make sure the application doesn't leave a lingering task when dragged over
   await setTimeout(1000);
 
   const taskToDrag = await page.$('li:has-text("Test application")');
-  const dropTarget = await page.getByText("Build Application");
-  const elsewhere = await page.getByText("Kanban Board");
-
   await taskToDrag.hover();
   await page.mouse.down();
   await setTimeout(1000);
-  await dropTarget.hover();
-  await dropTarget.hover();
+  await page.mouse.move(0, 500);
+  await page.mouse.move(0, 500);
   await setTimeout(1000);
-  await elsewhere.hover();
-  await elsewhere.hover();
+  await page.mouse.move(500, 500);
+  await page.mouse.move(500, 500);
   await setTimeout(1000);
   await page.mouse.up();
 
